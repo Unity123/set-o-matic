@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Set-O-Matic</title> 
+        <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/@pkmn/dex/build/learnsets.min.js"></script>
+    </head>
+    <body>
+        <h1>Set-O-Matic</h1>
+        <form id="input-data">
+            <label for="pokemon">Pokemon:</label>
+            <select id="pokemon" name="pokemon"></select>
+            <br>
+            <label for="generation">Generation:</label>
+            <input type="number" id="generation" name="generation" min="1" max="9" value="1">
+            <br>
+            <label for="metagame">Metagame:</label>
+            <select id="metagame" name="metagame">
+                <option value="ubers">Ubers</option>
+                <option value="ou">OU</option>
+                <option value="uu">UU</option>
+                <option value="ru">RU</option>
+                <option value="nu">NU</option>
+                <option value="pu">PU</option>
+                <option value="lc">LC</option>
+            </select>
+            <br>
+            <label for="archetype">Archetype:</label>
+            <select id="archetype" name="archetype">
+                <option value="auto">Automatic</option>
+                <option value="immediate-power">Immediate Power</option>
+                <option value="offensive-setup">Offensive Setup</option>
+                <option value="utility">Utility</option>
+                <option value="stall">Stall</option>
+                <option value="suicide-lead">Suicide Lead</option>
+            </select>
+            <br>
+            <label for="num">Number of Matchups (1-40):</label>
+            <input type="number" id="num" name="num" min="1" max="40" value="10"/>
+            <br>
+            <button>Analyze</button>
+        </form>
+        <p>
+            <label for="set">Set: </label>
+            <textarea id="set" readonly></textarea>
+        </p>
+        <script src="https://unpkg.com/@pkmn/dex"></script>
+        <script src="https://unpkg.com/@pkmn/data"></script>
+        <script src="https://unpkg.com/@pkmn/sets"></script>
+        <script src="https://unpkg.com/@smogon/calc"></script>
+        <script src="./index.js" type="module"></script>
+    </body>
+</html>

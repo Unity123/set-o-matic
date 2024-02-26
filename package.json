@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@pkmn/dex": "^0.8.8",
+    "@pkmn/smogon": "^0.5.4"
+  }
+}
