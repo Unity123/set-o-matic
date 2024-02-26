@@ -108,7 +108,7 @@ function populateSelects(gen) {
 
 async function getMetagameData(metagame) {
     var data = undefined;
-    data = await fetch("https://pkmn.github.io/smogon/data/stats/" + metagame + ".json");
+    data = await fetch("https://data.pkmn.cc/stats/" + metagame + ".json");
     var json = await data.json();
     console.log(json);
     return json;
@@ -166,7 +166,7 @@ function getStrongAttacks() {
     var moves = Object.values(Moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].basePower >= 75) {
-            strongMoves.push({name: moves[i].name, type: moves[i].type});
+            strongMoves.push(moves[i].name);
         }
     }
     return strongMoves;
@@ -270,19 +270,19 @@ async function createMovesets(pokemon, threats, boostingMoves, recoveryMoves, st
             set.moves.push(possibleBoostingMoves[Math.floor(Math.random() * possibleBoostingMoves.length)]);
             var possibleStrongMoves = [];
             for (var j = 0; j < strongMoves.length; j++) {
-                if (await genData.learnsets.canLearn(pokemon, strongMoves[j].name)) {
+                if (await genData.learnsets.canLearn(pokemon, strongMoves[j])) {
                     possibleStrongMoves.push(strongMoves[j]);
                 }
             }
             var possibleStrongStabMoves = [];
             console.log(data.types);
             for (var j = 0; j < possibleStrongMoves.length; j++) {
-                var move = genData.moves.get(possibleStrongMoves[j].name);
-                if (possibleStrongMoves[j].type === data.types[0] || possibleStrongMoves[j].type === data.types[1]) {
+                var move = genData.moves.get(possibleStrongMoves[j]);
+                if (move.type === data.types[0] || move.type === data.types[1]) {
                     possibleStrongStabMoves.push(possibleStrongMoves[j]);
                 }
             }
-            set.moves.push(possibleStrongStabMoves[Math.floor(Math.random() * possibleStrongStabMoves.length)].name);
+            set.moves.push(possibleStrongStabMoves[Math.floor(Math.random() * possibleStrongStabMoves.length)]);
             var avgSpeed = 0;
             for (var i = 0; i < threats.length; i++) {
                 var mon = genData.species.get(threats[i][0]);
@@ -313,8 +313,8 @@ async function createMovesets(pokemon, threats, boostingMoves, recoveryMoves, st
             if (possibleStatusMoves.length === 0) {
                 var possibleStrongMoves = [];
                 for (var j = 0; j < strongMoves.length; j++) {
-                    if (await genData.learnsets.canLearn(pokemon, strongMoves[j].name) && !set.moves.includes(strongMoves[j].name)) {
-                        possibleStrongMoves.push(strongMoves[j].name);
+                    if (await genData.learnsets.canLearn(pokemon, strongMoves[j]) && !set.moves.includes(strongMoves[j])) {
+                        possibleStrongMoves.push(strongMoves[j]);
                     }
                 }
                 set.moves.push(possibleStrongMoves[Math.floor(Math.random() * possibleStrongMoves.length)]);
@@ -356,9 +356,10 @@ function generateCoverage(pokemon, moves, strongMoves, threats) {
         var mon = genData.species.get(threats[i][0]);
         var type = mon.types;
         for (var k = 0; k < strongMoves.length; k++) {
-            if (genData.types.totalEffectiveness(strongMoves[k].type, type) > 1 && !moves.includes(strongMoves[k])) {
+            var move = genData.moves.get(strongMoves[k]);
+            if (genData.types.totalEffectiveness(move.type, type) > 1 && !moves.includes(strongMoves[k])) {
                 possibilities.push(strongMoves[k]);
-                if (genData.types.totalEffectiveness(strongMoves[k].type, type) > 1) {
+                if (genData.types.totalEffectiveness(move.type, type) > 2) {
                     possibilities.push(strongMoves[k]);
                 }
             }
@@ -367,7 +368,7 @@ function generateCoverage(pokemon, moves, strongMoves, threats) {
     var newMoves = [...moves];
     while (newMoves.length < 4) {
         var mod = mode(possibilities);
-        newMoves.push(mod.name);
+        newMoves.push(mod);
         while (possibilities.includes(mod)) {
             possibilities.splice(possibilities.indexOf(mod), 1);
         }
