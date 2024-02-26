@@ -1,5 +1,3 @@
-alert("What");
-
 import {Smogon} from "https://unpkg.com/@pkmn/smogon/build/index.mjs";
 import {Moves} from "https://unpkg.com/@pkmn/sim/build/esm/data/index.mjs";
 
@@ -464,7 +462,6 @@ async function calculateArchetypes(pokemon, threats, boostingMoves, recoveryMove
 }
 
 $(document).ready(function () {
-    alert("Testing!!!");
     gens = new pkmn.data.Generations(pkmn.dex.Dex);
     populateSelects($("#generation").val());
 });
