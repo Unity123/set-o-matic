@@ -258,6 +258,10 @@ async function createMovesets(pokemon, threats, boostingMoves, recoveryMoves, st
                     possibleRecoveryMoves.push(recoveryMoves[j]);
                 }
             }
+            if (possibleRecoveryMoves.length === 0) {
+                possibleRecoveryMoves.push("Rest");
+                console.log("No recovery, adding Rest!");
+            }
             set.moves.push(possibleRecoveryMoves[Math.floor(Math.random() * possibleRecoveryMoves.length)]);
         }
         if (archetype[i] === "offensive-setup") {
@@ -281,6 +285,10 @@ async function createMovesets(pokemon, threats, boostingMoves, recoveryMoves, st
                 if (move.type === data.types[0] || move.type === data.types[1]) {
                     possibleStrongStabMoves.push(possibleStrongMoves[j]);
                 }
+            }
+            if (possibleStrongStabMoves.length === 0 && genNumber < 8) {
+                possibleStrongStabMoves.push("Hidden Power " + data.types[0]);
+                console.log("No STAB, adding Hidden Power!");
             }
             set.moves.push(possibleStrongStabMoves[Math.floor(Math.random() * possibleStrongStabMoves.length)]);
             var avgSpeed = 0;
