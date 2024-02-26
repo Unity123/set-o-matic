@@ -462,6 +462,7 @@ async function calculateArchetypes(pokemon, threats, boostingMoves, recoveryMove
 }
 
 $(document).ready(function () {
+    alert("Testing!!!");
     gens = new pkmn.data.Generations(pkmn.dex.Dex);
     populateSelects($("#generation").val());
 });
