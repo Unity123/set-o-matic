@@ -1,6 +1,6 @@
 alert("What");
 
-import {Smogon} from "./node_modules/@pkmn/smogon/build/index.mjs";
+import {Smogon} from "https://unpkg.com/@pkmn/smogon/build/index.mjs";
 import {Moves} from "https://unpkg.com/@pkmn/sim/build/esm/data/index.mjs";
 
 $.uniqArray = function(a) {
