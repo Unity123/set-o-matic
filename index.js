@@ -1,3 +1,5 @@
+alert("What");
+
 import {Smogon} from "./node_modules/@pkmn/smogon/build/index.mjs";
 import {Moves} from "https://unpkg.com/@pkmn/sim/build/esm/data/index.mjs";
 
