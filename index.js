@@ -353,6 +353,9 @@ function generateCoverage(pokemon, moves, strongMoves, threats) {
     var possibilities = [];
     var num = 4 - moves.length;
     for (var i = 0; i < threats.length; i++) {
+        if (threats[i] === undefined) {
+            break;
+        }
         var mon = genData.species.get(threats[i][0]);
         var type = mon.types;
         for (var k = 0; k < strongMoves.length; k++) {
@@ -384,6 +387,9 @@ async function calculateArchetypes(pokemon, threats, boostingMoves, recoveryMove
     var isFast = false;
     var avgBulk = 0;
     for (var i = 0; i < threats.length; i++) {
+        if (threats[i] === undefined) {
+            break;
+        }
         console.log(threats[i][0]);
         var mon = genData.species.get(threats[i][0]);
         avgBulk += mon.baseStats.hp + mon.baseStats.def + mon.baseStats.spd;
