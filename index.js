@@ -61,7 +61,8 @@ const goodOffensiveAbilities = [
     "Misty Surge",
     "Grassy Surge",
     "Electric Surge",
-    "Psychic Surge"
+    "Psychic Surge",
+    "Sheer Force"
 ]
 
 const goodDefensiveAbilities = [
@@ -296,6 +297,7 @@ async function createMovesets(pokemon, threats, boostingMoves, recoveryMoves, st
                 var mon = genData.species.get(threats[i][0]);
                 avgSpeed += mon.baseStats.spe;
             }
+            avgSpeed /= threats.length;
             if (data.baseStats.spe < avgSpeed) {
                 var possiblePriorityMoves = [];
                 for (var j = 0; j < priorityMoves.length; j++) {
