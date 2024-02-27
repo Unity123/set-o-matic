@@ -10,7 +10,8 @@ $.uniqArray = function(a) {
 function shallowEqual(object1, object2) {
   const keys1 = Object.keys(object1);
   const keys2 = Object.keys(object2);
-
+  console.log(keys1);
+  console.log(keys2);
   var length = Math.min(keys1.length, keys2.length);
 
   for (let key = 0; key < length; key++) {
@@ -18,11 +19,17 @@ function shallowEqual(object1, object2) {
         typeof object1[key] === 'object' &&
         object1[key] !== null && object2[key]
     ) {
+        console.log("Found objects:"):
+        console.log(object1[key]);
+        console.log(object2[key]);
         if (!shallowEqual(object1[key], object2[key])) {
             return false;
         }
         continue;
     }
+    console.log("Comparing:");
+    console.log(object1[key]);
+    console.log(object2[key]);
     if (object1[key] !== object2[key]) {
       return false;
     }
