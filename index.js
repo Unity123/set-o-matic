@@ -124,7 +124,7 @@ const riskyMoves = {
         recharge: 1
     }.
     mindBlownRecoil: 1,
-    self {
+    self: {
         boosts: {
             atk: -2,
             spa: -2
