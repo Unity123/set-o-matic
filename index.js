@@ -497,13 +497,18 @@ async function getNonVolatileStatusMoves(pokemon) {
 }
 
 async function getRecoveryMoves(pokemon) {
+    console.log(pokemon);
     // all moves tagged as healing except the ones that don't actually heal you and rest and swallow (inconsistent)
     var recoveryMoves = [];
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
+        console.log(moves[i].flags.heal);
         if (moves[i].flags.heal && moves[i].target === "self") {
-            if (moves[i].name !== "Healing Wish" && moves[i].name !== "Revival Blessing" && moves[i].name !== "Rest" && moves[i].name !== "Swallow" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
-                recoveryMoves.push(moves[i].name);
+            if (moves[i].name !== "Healing Wish" && moves[i].name !== "Revival Blessing" && moves[i].name !== "Rest" && moves[i].name !== "Swallow") {
+                if (await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+                    console.log("Found move " + moves[i].name + " that heals");
+                    recoveryMoves.push(moves[i].name);
+                }
             }
         }
     }
@@ -584,18 +589,20 @@ async function createMovesets(pokemon, threats, archetype) {
         set.species = pokemon;
         set.moves = [];
         if (archetype[i] === "stall") {
-            var possibleRecoveryMoves = getRecoveryMoves(pokemon);
+            var possibleRecoveryMoves = await getRecoveryMoves(pokemon);
             if (possibleRecoveryMoves.length === 0) {
                 possibleRecoveryMoves.push("Rest");
                 console.log("No recovery, adding Rest!");
             }
             set.moves.push(possibleRecoveryMoves[0]); // nothing has more than one recovery move I think
-            var possibleStatusMoves = getNonVolatileStatusMoves(pokemon);
+            var possibleStatusMoves = await getNonVolatileStatusMoves(pokemon);
             for (var j = 0; j < possibleStatusMoves.length; j++) {
                 var newSet = {...set};
+                newSet.moves = [...set.moves];
                 newSet.moves.push(possibleStatusMoves[j]);
+                console.log(newSet);
                 newSet.moves = await resolveMoveCombos(pokemon, newSet.moves, combos);
-                newSet
+                variations.push(newSet);
             }
         }
         if (archetype[i] === "offensive-setup") {
@@ -628,31 +635,34 @@ async function createMovesets(pokemon, threats, archetype) {
             if (specialCount > physicalCount && specialBoostingMoves.length > 0) {
                 for (var j = 0; j < specialBoostingMoves.length; j++) {
                     var newSet = {...set};
+                    newSet.moves = [...set.moves];
                     newSet.moves.push(specialBoostingMoves[j]);
                     newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
                     while (newSet.moves.length > 4) {
-                        newSet.moves.splice(3, 1);
+                        newSet.moves.splice(2, 1);
                     }
                     variations.push(newSet);
                 }
             } else if (physicalBoostingMoves.length > 0) {
                 for (var j = 0; j < physicalBoostingMoves.length; j++) {
                     var newSet = {...set};
+                    newSet.moves = [...set.moves];
                     newSet.moves.push(physicalBoostingMoves[j]);
                     newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
                     console.log(newSet.moves);
                     while (newSet.moves.length > 4) {
-                        newSet.moves.splice(3, 1);
+                        newSet.moves.splice(2, 1);
                     }
                     variations.push(newSet);
                 }
             } else {
                 for (var j = 0; j < specialBoostingMoves.length; j++) {
                     var newSet = {...set};
+                    newSet.moves = [...set.moves];
                     newSet.moves.push(specialBoostingMoves[j]);
                     newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
                     while (newSet.moves.length > 4) {
-                        newSet.moves.splice(3, 1);
+                        newSet.moves.splice(2, 1);
                     }
                 }
                 variations.push(newSet);
