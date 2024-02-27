@@ -122,7 +122,7 @@ const riskyMoves = {
     flags: {
         charge: 1,
         recharge: 1
-    }.
+    },
     mindBlownRecoil: 1,
     self: {
         boosts: {
