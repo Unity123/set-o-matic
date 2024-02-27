@@ -19,7 +19,7 @@ function shallowEqual(object1, object2) {
         typeof object1[key] === 'object' &&
         object1[key] !== null && object2[key]
     ) {
-        console.log("Found objects:"):
+        console.log("Found objects:");
         console.log(object1[key]);
         console.log(object2[key]);
         if (!shallowEqual(object1[key], object2[key])) {
