@@ -622,6 +622,8 @@ async function createMovesets(pokemon, threats, archetype) {
             var physicalCount = 0;
             var physicalBoostingMoves = await getPhysicalBoostingMoves(pokemon);
             var specialBoostingMoves = await getSpecialBoostingMoves(pokemon);
+            console.log(physicalBoostingMoves);
+            console.log(specialBoostingMoves);
             for (var j = 0; j < set.moves.length; j++) {
                 var move = set.moves[j];
                 console.log(move);
@@ -636,8 +638,9 @@ async function createMovesets(pokemon, threats, archetype) {
                 for (var j = 0; j < specialBoostingMoves.length; j++) {
                     var newSet = {...set};
                     newSet.moves = [...set.moves];
+                    console.log(newSet.moves);
                     newSet.moves.push(specialBoostingMoves[j]);
-                    newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
+                    newSet.moves = await resolveMoveCombos(pokemon, newSet.moves, combos);
                     while (newSet.moves.length > 4) {
                         newSet.moves.splice(2, 1);
                     }
@@ -647,8 +650,9 @@ async function createMovesets(pokemon, threats, archetype) {
                 for (var j = 0; j < physicalBoostingMoves.length; j++) {
                     var newSet = {...set};
                     newSet.moves = [...set.moves];
+                    console.log(newSet.moves);
                     newSet.moves.push(physicalBoostingMoves[j]);
-                    newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
+                    newSet.moves = await resolveMoveCombos(pokemon, newSet.moves, combos);
                     console.log(newSet.moves);
                     while (newSet.moves.length > 4) {
                         newSet.moves.splice(2, 1);
@@ -659,8 +663,9 @@ async function createMovesets(pokemon, threats, archetype) {
                 for (var j = 0; j < specialBoostingMoves.length; j++) {
                     var newSet = {...set};
                     newSet.moves = [...set.moves];
+                    console.log(newSet.moves);
                     newSet.moves.push(specialBoostingMoves[j]);
-                    newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
+                    newSet.moves = await resolveMoveCombos(pokemon, newSet.moves, combos);
                     while (newSet.moves.length > 4) {
                         newSet.moves.splice(2, 1);
                     }
