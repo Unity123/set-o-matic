@@ -123,10 +123,10 @@ function getTopThreats(data, number) {
     return threats;
 }
 
-function getBoostingMoves() {
+/*function getBoostingMoves() {
     /* this function gets good boosting moves
     I have decided that good boosting moves either boost at least two stats by at least one stage, boost one stat by at least two stages, 
-    or are attacks with at least a 50% chance to boost at least one of the user's stats by at least one stage */
+    or are attacks with at least a 50% chance to boost at least one of the user's stats by at least one stage *
     var boostingMoves = [];
     var moves = Object.values(Moves);
     for (var i = 0; i < moves.length; i++) {
@@ -195,6 +195,353 @@ function getStatusMoves() {
         }
     }
     return statusMoves;
+}*/
+
+async function getBoostingMoves(pokemon) {
+    /* this function gets good boosting moves
+    I have decided that good boosting moves either boost at least two stats by at least one stage, boost one stat by at least two stages, 
+    or are attacks with at least a 50% chance to boost at least one of the user's stats by at least one stage */
+    var boostingMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].boosts) {
+            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || moves[i].boosts.def || moves[i].boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+                boostingMoves.push(moves[i].name);
+            }
+        }
+        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || moves[i].secondary.self.boosts.def || moves[i].secondary.self.boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            for (var j = 0; j < Object.values(moves[i].secondary.self.boosts).length; j++) {
+                if (Object.values(moves[i].secondary.self.boosts)[j] >= 1) {
+                    boostingMoves.push(moves[i].name);
+                    break;
+                }
+            }
+        }
+    }
+    return boostingMoves;
+}
+
+async function getPhysicalBoostingMoves(pokemon) {
+    var boostingMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].boosts) {
+            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || moves[i].boosts.def) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+                boostingMoves.push(moves[i].name);
+            }
+        }
+        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || moves[i].secondary.self.boosts.def) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            for (var j = 0; j < Object.values(moves[i].secondary.self.boosts).length; j++) {
+                if (Object.values(moves[i].secondary.self.boosts)[j] >= 1) {
+                    boostingMoves.push(moves[i].name);
+                    break;
+                }
+            }
+        }
+    }
+    return boostingMoves;
+}
+
+async function getSpecialBoostingMoves(pokemon) {
+    var boostingMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].boosts) {
+            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+                boostingMoves.push(moves[i].name);
+            }
+        }
+        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            for (var j = 0; j < Object.values(moves[i].secondary.self.boosts).length; j++) {
+                if (Object.values(moves[i].secondary.self.boosts)[j] >= 1) {
+                    boostingMoves.push(moves[i].name);
+                    break;
+                }
+            }
+        }
+    }
+    return boostingMoves;
+}
+
+async function getPhysicalMoves(pokemon) {
+    var physicalMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].category === "Physical" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            physicalMoves.push(moves[i].name);
+        }
+    }
+    return physicalMoves;
+}
+
+async function getPhysicalSTABMoves(pokemon) {
+    var physicalSTABMoves = [];
+    var physicalMoves = await getPhysicalMoves(pokemon);
+    var data = genData.species.get(pokemon);
+    var types = data.types;
+    for (var i = 0; i < physicalMoves.length; i++) {
+        var move = genData.moves.get(physicalMoves[i]);
+        if (move.type === types[0] || move.type === types[1]) {
+            physicalSTABMoves.push(physicalMoves[i]);
+        }
+    }
+    return physicalSTABMoves;
+}
+
+async function getBestPhysicalSTABMove(pokemon) {
+    var physicalSTABMoves = await getPhysicalSTABMoves(pokemon);
+    var oldBest = physicalSTABMoves[0];
+    for (var i = 0; i < physicalSTABMoves.length; i++) {
+        var move = genData.moves.get(physicalSTABMoves[i]);
+        if ((move.basePower > genData.moves.get(oldBest).basePower && !(genNumber == 1 && move.critRatio < genData.moves.get(oldBest).critRatio)) || (genNumber == 1 && move.critRatio > genData.moves.get(oldBest).critRatio)) { // hardcoding for gen 1 crits
+            oldBest = physicalSTABMoves[i];
+        }
+    }
+    return oldBest;
+}
+
+async function getBestPhysicalMove(pokemon, type) {
+    var physicalMoves = await getPhysicalMoves(pokemon);
+    var oldBest = physicalMoves[0];
+    for (var i = 0; i < physicalMoves.length; i++) {
+        var move = genData.moves.get(physicalMoves[i]);
+        if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower) {
+            oldBest = physicalMoves[i];
+        }
+    }
+    if (oldBest === undefined || genData.moves.get(oldBest).type !== type) {
+        return undefined;
+    }
+    return oldBest;
+}
+
+async function getBestUniquePhysicalMove(pokemon, type, moves) {
+    var physicalMoves = await getPhysicalMoves(pokemon);
+    var oldBest = physicalMoves[0];
+    for (var i = 0; i < physicalMoves.length; i++) {
+        var move = genData.moves.get(physicalMoves[i]);
+        if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower && !moves.includes(physicalMoves[i])) {
+            oldBest = physicalMoves[i];
+        }
+    }
+    if (oldBest === undefined || genData.moves.get(oldBest).type !== type) {
+        return undefined;
+    }
+    return oldBest;
+}
+
+async function getSpecialMoves(pokemon) {
+    var specialMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].category === "Special" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            specialMoves.push(moves[i].name);
+        }
+    }
+    return specialMoves;
+}
+
+async function getSpecialSTABMoves(pokemon) {
+    var specialSTABMoves = [];
+    var specialMoves = await getSpecialMoves(pokemon);
+    var data = genData.species.get(pokemon);
+    var types = data.types;
+    for (var i = 0; i < specialMoves.length; i++) {
+        var move = genData.moves.get(specialMoves[i]);
+        if (move.type === types[0] || move.type === types[1]) {
+            specialSTABMoves.push(specialMoves[i]);
+        }
+    }
+    return specialSTABMoves;
+}
+
+async function getBestSpecialSTABMove(pokemon) {
+    var specialSTABMoves = await getSpecialSTABMoves(pokemon);
+    var oldBest = specialSTABMoves[0];
+    for (var i = 0; i < specialSTABMoves.length; i++) {
+        var move = genData.moves.get(specialSTABMoves[i]);
+        console.log((genNumber == 1 && move.critRatio > 1));
+        if ((move.basePower > genData.moves.get(oldBest).basePower && !(genNumber == 1 && move.critRatio < genData.moves.get(oldBest).critRatio)) || (genNumber == 1 && move.critRatio > genData.moves.get(oldBest).critRatio)) { // hardcoding for gen 1 crits
+            oldBest = specialSTABMoves[i];
+        }
+    }
+    return oldBest;
+}
+
+async function getBestSpecialMove(pokemon, type) {
+    var specialMoves = await getSpecialMoves(pokemon);
+    var oldBest = specialMoves[0];
+    for (var i = 0; i < specialMoves.length; i++) {
+        var move = genData.moves.get(specialMoves[i]);
+        //console.log(move.type);
+        //console.log(move.basePower);
+        //console.log(oldBest);
+        if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower) {
+            oldBest = specialMoves[i];
+        }
+    }
+    if (oldBest === undefined || genData.moves.get(oldBest).type !== type) {
+        return undefined;
+    }
+    return oldBest;
+}
+
+async function getBestUniqueSpecialMove(pokemon, type, moves) {
+    var specialMoves = await getSpecialMoves(pokemon);
+    var oldBest = specialMoves[0];
+    for (var i = 0; i < specialMoves.length; i++) {
+        var move = genData.moves.get(specialMoves[i]);
+        //console.log(move.type);
+        //console.log(move.basePower);
+        //console.log(oldBest);
+        if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower && !moves.includes(specialMoves[i])) {
+            oldBest = specialMoves[i];
+        }
+    }
+    if (oldBest === undefined || genData.moves.get(oldBest).type !== type) {
+        return undefined;
+    }
+    return oldBest;
+}
+
+async function getBestSTABMove(pokemon) {
+    var physicalSTABMove = await getBestPhysicalSTABMove(pokemon);
+    var specialSTABMove = await getBestSpecialSTABMove(pokemon);
+    if (physicalSTABMove === undefined) {
+        return specialSTABMove;
+    }
+    if (specialSTABMove === undefined) {
+        return physicalSTABMove;
+    }
+    if (physicalSTABMove === undefined && specialSTABMove === undefined) {
+        return undefined;
+    }
+    var pokemon = genData.species.get(pokemon);
+    var physicalPower = genData.moves.get(physicalSTABMove).basePower + pokemon.baseStats.atk;
+    var specialPower = genData.moves.get(specialSTABMove).basePower + pokemon.baseStats.spa;
+    if (physicalPower > specialPower) {
+        return physicalSTABMove;
+    } else {
+        return specialSTABMove;
+    }
+}
+
+async function getBestMove(pokemon, type) {
+    var physicalMove = await getBestPhysicalMove(pokemon, type);
+    var specialMove = await getBestSpecialMove(pokemon, type);
+    var pokemon = genData.species.get(pokemon);
+    console.log(physicalMove);
+    console.log(specialMove);
+    if (physicalMove === undefined) {
+        return specialMove;
+    }
+    if (specialMove === undefined) {
+        return physicalMove;
+    }
+    if (physicalMove === undefined && specialMove === undefined) {
+        return undefined;
+    }
+    var physicalPower = genData.moves.get(physicalMove).basePower + pokemon.baseStats.atk;
+    var specialPower = genData.moves.get(specialMove).basePower + pokemon.baseStats.spa;
+    if (physicalPower > specialPower) {
+        return physicalMove;
+    } else {
+        return specialMove;
+    }
+}
+
+async function getBestUniqueMove(pokemon, type, moves) {
+    var physicalMove = await getBestUniquePhysicalMove(pokemon, type, moves);
+    var specialMove = await getBestUniqueSpecialMove(pokemon, type, moves);
+    var pokemon = genData.species.get(pokemon);
+    console.log(physicalMove);
+    console.log(specialMove);
+    if (physicalMove === undefined) {
+        return specialMove;
+    }
+    if (specialMove === undefined) {
+        return physicalMove;
+    }
+    if (physicalMove === undefined && specialMove === undefined) {
+        return undefined;
+    }
+    var physicalPower = genData.moves.get(physicalMove).basePower + pokemon.baseStats.atk;
+    var specialPower = genData.moves.get(specialMove).basePower + pokemon.baseStats.spa;
+    if (physicalPower > specialPower) {
+        return physicalMove;
+    } else {
+        return specialMove;
+    }
+}
+
+async function getStatusMoves(pokemon) {
+    var statusMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].category === "Status" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            statusMoves.push(moves[i].name);
+        }
+    }
+    return statusMoves;
+}
+
+async function getNonVolatileStatusMoves(pokemon) {
+    var statusMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].status && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            statusMoves.push(moves[i].name);
+        }
+    }
+    return statusMoves;
+}
+
+async function getRecoveryMoves(pokemon) {
+    // all moves tagged as healing except the ones that don't actually heal you and rest and swallow (inconsistent)
+    var recoveryMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].flags.heal && moves[i].target === "self") {
+            if (moves[i].name !== "Healing Wish" && moves[i].name !== "Revival Blessing" && moves[i].name !== "Rest" && moves[i].name !== "Swallow" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+                recoveryMoves.push(moves[i].name);
+            }
+        }
+    }
+    return recoveryMoves;
+}
+
+async function getPriorityMoves(pokemon) {
+    // all moves with priority
+    var priorityMoves = [];
+    var moves = Array.from(genData.moves);
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].priority > 0 && moves[i].basePower > 0 && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            priorityMoves.push(moves[i].name);
+        }
+    }
+    return priorityMoves;
+}
+
+async function getBestPriorityMove(pokemon) {
+    var priorityMoves = await getPriorityMoves(pokemon);
+    var oldBest = priorityMoves[0];
+    for (var i = 0; i < priorityMoves.length; i++) {
+        var move = genData.moves.get(priorityMoves[i]);
+        if (move.basePower > genData.moves.get(oldBest).basePower || (move.basePower >= genData.moves.get(oldBest).basePower && move.priority > genData.moves.get(oldBest).priority)) {
+            oldBest = priorityMoves[i];
+        }
+    }
+    return oldBest;
+}
+
+function getAvgSpeed(threats) {
+    var avgSpeed = 0;
+    for (var i = 0; i < threats.length; i++) {
+        var mon = genData.species.get(threats[i][0]);
+        avgSpeed += mon.baseStats.spe;
+    }
+    avgSpeed /= threats.length;
+    return avgSpeed;
 }
 
 async function analyze() {
@@ -204,27 +551,17 @@ async function analyze() {
     var metagameData = await getMetagameData(metagame);
     var matchups = $("#num").val();
     var threats = getTopThreats(metagameData, matchups);
-    var boostingMoves = getBoostingMoves();
-    var recoveryMoves = getRecoveryMoves();
-    var strongMoves = getStrongAttacks();
-    var priorityMoves = getPriority();
-    var statusMoves = getStatusMoves();
-    console.log(boostingMoves);
-    console.log(recoveryMoves);
-    console.log(strongMoves);
-    console.log(priorityMoves);
-    console.log(statusMoves);
     // First, figure out the archetype based on stats, ability and movepool (if it's not manually specified)
     var archetype = $("#archetype").val();
     if (archetype === "auto") {
-        archetype = await calculateArchetypes(pokemon, threats, boostingMoves, recoveryMoves);
+        archetype = await calculateArchetypes(pokemon, threats);
     } else {
         archetype = [archetype];
     }
     console.log(archetype);
     // Then, calculate every move's matchup against the most common threats using basic, approximate criteria (type effectiveness, how much status would harm them, etc.)
     // Select the best four moves based on the above criteria
-    var movesets = await createMovesets(pokemon, threats, boostingMoves, recoveryMoves, strongMoves, priorityMoves, statusMoves, archetype);
+    var movesets = await createMovesets(pokemon, threats, archetype);
     console.log(movesets);
     // Then, calculate an EV spread and nature by figuring out how many hits from each move would KO each threat and how many hits from each threat would KO the Pokemon and then seeking to make the first number larger, or if they're the same, make the Pokemon faster (accounting for priority to add extra bulk)
     // Then, select an appropriate item for the archetype and the moveset
@@ -237,102 +574,97 @@ async function analyze() {
     }
 }
 
-async function createMovesets(pokemon, threats, boostingMoves, recoveryMoves, strongMoves, priorityMoves, statusMoves, archetype) {
+async function createMovesets(pokemon, threats, archetype) {
     var movesets = [];
     var data = genData.species.get(pokemon);
     for (var i = 0; i < archetype.length; i++) {
         var set = {};
+        var variations = [];
         set.name = archetype[i];
         set.species = pokemon;
         set.moves = [];
         if (archetype[i] === "stall") {
-            var possibleStatusMoves = [];
-            for (var j = 0; j < statusMoves.length; j++) {
-                if (await genData.learnsets.canLearn(pokemon, statusMoves[j])) {
-                    possibleStatusMoves.push(statusMoves[j]);
-                }
-            }
-            set.moves.push(possibleStatusMoves[Math.floor(Math.random() * possibleStatusMoves.length)]);
-            var possibleRecoveryMoves = [];
-            for (var j = 0; j < recoveryMoves.length; j++) {
-                if (await genData.learnsets.canLearn(pokemon, recoveryMoves[j])) {
-                    possibleRecoveryMoves.push(recoveryMoves[j]);
-                }
-            }
+            var possibleRecoveryMoves = getRecoveryMoves(pokemon);
             if (possibleRecoveryMoves.length === 0) {
                 possibleRecoveryMoves.push("Rest");
                 console.log("No recovery, adding Rest!");
             }
-            set.moves.push(possibleRecoveryMoves[Math.floor(Math.random() * possibleRecoveryMoves.length)]);
+            set.moves.push(possibleRecoveryMoves[0]); // nothing has more than one recovery move I think
+            var possibleStatusMoves = getNonVolatileStatusMoves(pokemon);
+            for (var j = 0; j < possibleStatusMoves.length; j++) {
+                var newSet = {...set};
+                newSet.moves.push(possibleStatusMoves[j]);
+                newSet.moves = await resolveMoveCombos(pokemon, newSet.moves, combos);
+                newSet
+            }
         }
         if (archetype[i] === "offensive-setup") {
-            var possibleBoostingMoves = [];
-            for (var j = 0; j < boostingMoves.length; j++) {
-                if (await genData.learnsets.canLearn(pokemon, boostingMoves[j])) {
-                    possibleBoostingMoves.push(boostingMoves[j]);
+            var bestSTABMove = await getBestSTABMove(pokemon);
+            if (bestSTABMove) {
+                set.moves.push(bestSTABMove);
+            }
+            if (data.baseStats.spe < getAvgSpeed(threats)) {
+                var priority = await getBestPriorityMove(pokemon);
+                if (priority) {
+                    set.moves.push(priority);
                 }
             }
-            set.moves.push(possibleBoostingMoves[Math.floor(Math.random() * possibleBoostingMoves.length)]);
-            var possibleStrongMoves = [];
-            for (var j = 0; j < strongMoves.length; j++) {
-                if (await genData.learnsets.canLearn(pokemon, strongMoves[j])) {
-                    possibleStrongMoves.push(strongMoves[j]);
+            console.log(set.moves);
+            set.moves = await generateCoverage(pokemon, set.moves, threats, 3);
+            var specialCount = 0;
+            var physicalCount = 0;
+            var physicalBoostingMoves = await getPhysicalBoostingMoves(pokemon);
+            var specialBoostingMoves = await getSpecialBoostingMoves(pokemon);
+            for (var j = 0; j < set.moves.length; j++) {
+                var move = set.moves[j];
+                console.log(move);
+                if (genData.moves.get(move).category === "Special") {
+                    specialCount++;
+                }
+                if (genData.moves.get(move).category === "Physical") {
+                    physicalCount++;
                 }
             }
-            var possibleStrongStabMoves = [];
-            console.log(data.types);
-            for (var j = 0; j < possibleStrongMoves.length; j++) {
-                var move = genData.moves.get(possibleStrongMoves[j]);
-                if (move.type === data.types[0] || move.type === data.types[1]) {
-                    possibleStrongStabMoves.push(possibleStrongMoves[j]);
+            if (specialCount > physicalCount && specialBoostingMoves.length > 0) {
+                for (var j = 0; j < specialBoostingMoves.length; j++) {
+                    var newSet = {...set};
+                    newSet.moves.push(specialBoostingMoves[j]);
+                    newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
+                    while (newSet.moves.length > 4) {
+                        newSet.moves.splice(3, 1);
+                    }
+                    variations.push(newSet);
                 }
-            }
-            if (possibleStrongStabMoves.length === 0 && genNumber < 8) {
-                possibleStrongStabMoves.push("Hidden Power " + data.types[0]);
-                console.log("No STAB, adding Hidden Power!");
-            }
-            set.moves.push(possibleStrongStabMoves[Math.floor(Math.random() * possibleStrongStabMoves.length)]);
-            var avgSpeed = 0;
-            for (var i = 0; i < threats.length; i++) {
-                var mon = genData.species.get(threats[i][0]);
-                avgSpeed += mon.baseStats.spe;
-            }
-            avgSpeed /= threats.length;
-            if (data.baseStats.spe < avgSpeed) {
-                var possiblePriorityMoves = [];
-                for (var j = 0; j < priorityMoves.length; j++) {
-                    if (await genData.learnsets.canLearn(pokemon, priorityMoves[j])) {
-                        possiblePriorityMoves.push(priorityMoves[j]);
+            } else if (physicalBoostingMoves.length > 0) {
+                for (var j = 0; j < physicalBoostingMoves.length; j++) {
+                    var newSet = {...set};
+                    newSet.moves.push(physicalBoostingMoves[j]);
+                    newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
+                    console.log(newSet.moves);
+                    while (newSet.moves.length > 4) {
+                        newSet.moves.splice(3, 1);
+                    }
+                    variations.push(newSet);
+                }
+            } else {
+                for (var j = 0; j < specialBoostingMoves.length; j++) {
+                    var newSet = {...set};
+                    newSet.moves.push(specialBoostingMoves[j]);
+                    newSet.moves = await resolveMoveCombos(pokemon, set.moves, combos);
+                    while (newSet.moves.length > 4) {
+                        newSet.moves.splice(3, 1);
                     }
                 }
-                if (possiblePriorityMoves.length > 0) {
-                    set.moves.push(possiblePriorityMoves[Math.floor(Math.random() * possiblePriorityMoves.length)]);
-                }
+                variations.push(newSet);
             }
-            set.moves = await resolveMoveCombos(pokemon, set.moves, combos);
-            set.moves = generateCoverage(pokemon, set.moves, possibleStrongMoves, threats);
         }
-        set.moves = await resolveMoveCombos(pokemon, set.moves, combos);
-        while (set.moves.length < 4) {
-            var possibleStatusMoves = [];
-            for (var j = 0; j < statusMoves.length; j++) {
-                if (await genData.learnsets.canLearn(pokemon, statusMoves[j]) && !set.moves.includes(statusMoves[j])) {
-                    possibleStatusMoves.push(statusMoves[j]);
-                }
+        if (variations.length > 0) {
+            for (var j = 0; j < variations.length; j++) {
+                movesets.push(variations[j]);
             }
-            if (possibleStatusMoves.length === 0) {
-                var possibleStrongMoves = [];
-                for (var j = 0; j < strongMoves.length; j++) {
-                    if (await genData.learnsets.canLearn(pokemon, strongMoves[j]) && !set.moves.includes(strongMoves[j])) {
-                        possibleStrongMoves.push(strongMoves[j]);
-                    }
-                }
-                set.moves.push(possibleStrongMoves[Math.floor(Math.random() * possibleStrongMoves.length)]);
-                continue;
-            }
-            set.moves.push(possibleStatusMoves[Math.floor(Math.random() * possibleStatusMoves.length)]);
+        } else {
+            movesets.push(set);
         }
-        movesets.push(set);
     }
     return movesets;
 }
@@ -359,38 +691,52 @@ function mode(arr){
     ).pop();
 }
 
-function generateCoverage(pokemon, moves, strongMoves, threats) {
+async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
     var possibilities = [];
-    var num = 4 - moves.length;
+    var types = Array.from(genData.types);
+    var existingTypes = [];
+    console.log(types);
+    console.log(existingTypes);
+    for (var i = 0; i < moves.length; i++) {
+        existingTypes.push(genData.moves.get(moves[i]).type);
+    }
     for (var i = 0; i < threats.length; i++) {
         if (threats[i] === undefined) {
             break;
         }
         var mon = genData.species.get(threats[i][0]);
         var type = mon.types;
-        for (var k = 0; k < strongMoves.length; k++) {
-            var move = genData.moves.get(strongMoves[k]);
-            if (genData.types.totalEffectiveness(move.type, type) > 1 && !moves.includes(strongMoves[k])) {
-                possibilities.push(strongMoves[k]);
-                if (genData.types.totalEffectiveness(move.type, type) > 2) {
-                    possibilities.push(strongMoves[k]);
+        for (var k = 0; k < types.length; k++) {
+            if (genData.types.totalEffectiveness(types[k].name, type) > 1 && !existingTypes.includes(types[k].name)) {
+                possibilities.push(types[k].name);
+                if (genData.types.totalEffectiveness(types[k].name, type) > 2) {
+                    possibilities.push(types[k].name);
                 }
             }
         }
     }
+    possibilities.push("Normal");
     var newMoves = [...moves];
-    while (newMoves.length < 4) {
+    while (newMoves.length < maxMoves) {
         var mod = mode(possibilities);
-        newMoves.push(mod);
+        console.log(mod);
+        var newMove = await getBestUniqueMove(pokemon, mod, newMoves);
+        if (newMove) {
+            newMoves.push(newMove);
+        }
         while (possibilities.includes(mod)) {
             possibilities.splice(possibilities.indexOf(mod), 1);
         }
         console.log(newMoves.length);
+        if (possibilities.length === 0) {
+            possibilities.push("Normal");
+        }
     }
+    console.log(newMoves);
     return newMoves;
 }
 
-async function calculateArchetypes(pokemon, threats, boostingMoves, recoveryMoves, statusMoves) {
+async function calculateArchetypes(pokemon, threats) {
     var data = genData.species.get(pokemon);
     var isBulky = false;
     var isStrong = false;
@@ -443,20 +789,14 @@ async function calculateArchetypes(pokemon, threats, boostingMoves, recoveryMove
         archetypes.push("suicide-lead");
     }
     if (isBulky && !isStrong) {
-        for (var i = 0; i < recoveryMoves.length; i++) {
-            if (await genData.learnsets.canLearn(pokemon, recoveryMoves[i])) { // bulky recovery = stall
-                archetypes.push("stall");
-                break;
-            }
+        if (getRecoveryMoves(pokemon).length > 0) {
+            archetypes.push("stall");
         }
     }
     if ((isStrong && isBulky) || (isStrong && isFast)) {
-        for (var i = 0; i < boostingMoves.length; i++) {
-            if (await genData.learnsets.canLearn(pokemon, boostingMoves[i])) { // strong boosting = setup
-                archetypes.push("offensive-setup");
-                break;
-            }
-        }   
+        if (getBoostingMoves(pokemon).length > 0) {
+            archetypes.push("offensive-setup");
+        }
     }
     if (isFast && !isBulky) {
         if (await genData.learnsets.canLearn(pokemon, "Stealth Rock") || await genData.learnsets.canLearn(pokemon, "Spikes") || await genData.learnsets.canLearn(pokemon, "Toxic Spikes")) {
