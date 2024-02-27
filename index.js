@@ -7,6 +7,30 @@ $.uniqArray = function(a) {
     });
 };
 
+function shallowEqual(object1, object2) {
+  const keys1 = Object.keys(object1);
+  const keys2 = Object.keys(object2);
+
+  var length = Math.min(keys1.length, keys2.length);
+
+  for (let key = 0; key < length; key++) {
+    if (
+        typeof object1[key] === 'object' &&
+        object1[key] !== null
+    ) {
+        if (!shallowEqual(object1[key], object2[key])) {
+            return false;
+        }
+        continue;
+    }
+    if (object1[key] !== object2[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 var gens = undefined;
 const smogon = new Smogon(fetch.bind(window));
 
@@ -93,6 +117,20 @@ const goodDefensiveAbilities = [
     "Electric Surge",
     "Psychic Surge"
 ]
+
+const riskyMoves = {
+    flags: {
+        charge: 1,
+        recharge: 1
+    }.
+    mindBlownRecoil: 1,
+    self {
+        boosts: {
+            atk: -2,
+            spa: -2
+        }
+    }
+};
 
 var genData = undefined;
 var genNumber = 1;
@@ -263,20 +301,23 @@ async function getSpecialBoostingMoves(pokemon) {
     return boostingMoves;
 }
 
-async function getPhysicalMoves(pokemon) {
+async function getPhysicalMoves(pokemon, allowRisky=false) {
     var physicalMoves = [];
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].category === "Physical" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            if (!allowRisky && shallowEqual(moves[i], riskyMoves)) {
+                continue;
+            }
             physicalMoves.push(moves[i].name);
         }
     }
     return physicalMoves;
 }
 
-async function getPhysicalSTABMoves(pokemon) {
+async function getPhysicalSTABMoves(pokemon, allowRisky=false) {
     var physicalSTABMoves = [];
-    var physicalMoves = await getPhysicalMoves(pokemon);
+    var physicalMoves = await getPhysicalMoves(pokemon, allowRisky);
     var data = genData.species.get(pokemon);
     var types = data.types;
     for (var i = 0; i < physicalMoves.length; i++) {
@@ -288,8 +329,8 @@ async function getPhysicalSTABMoves(pokemon) {
     return physicalSTABMoves;
 }
 
-async function getBestPhysicalSTABMove(pokemon) {
-    var physicalSTABMoves = await getPhysicalSTABMoves(pokemon);
+async function getBestPhysicalSTABMove(pokemon, allowRisky=false) {
+    var physicalSTABMoves = await getPhysicalSTABMoves(pokemon, allowRisky);
     var oldBest = physicalSTABMoves[0];
     for (var i = 0; i < physicalSTABMoves.length; i++) {
         var move = genData.moves.get(physicalSTABMoves[i]);
@@ -300,8 +341,8 @@ async function getBestPhysicalSTABMove(pokemon) {
     return oldBest;
 }
 
-async function getBestPhysicalMove(pokemon, type) {
-    var physicalMoves = await getPhysicalMoves(pokemon);
+async function getBestPhysicalMove(pokemon, type, allowRisky=false) {
+    var physicalMoves = await getPhysicalMoves(pokemon, allowRisky);
     var oldBest = physicalMoves[0];
     for (var i = 0; i < physicalMoves.length; i++) {
         var move = genData.moves.get(physicalMoves[i]);
@@ -315,8 +356,8 @@ async function getBestPhysicalMove(pokemon, type) {
     return oldBest;
 }
 
-async function getBestUniquePhysicalMove(pokemon, type, moves) {
-    var physicalMoves = await getPhysicalMoves(pokemon);
+async function getBestUniquePhysicalMove(pokemon, type, moves, allowRisky=false) {
+    var physicalMoves = await getPhysicalMoves(pokemon, allowRisky);
     var oldBest = physicalMoves[0];
     for (var i = 0; i < physicalMoves.length; i++) {
         var move = genData.moves.get(physicalMoves[i]);
@@ -330,20 +371,23 @@ async function getBestUniquePhysicalMove(pokemon, type, moves) {
     return oldBest;
 }
 
-async function getSpecialMoves(pokemon) {
+async function getSpecialMoves(pokemon, allowRisky=false) {
     var specialMoves = [];
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].category === "Special" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            if (!allowRisky && shallowEqual(moves[i], riskyMoves)) {
+                continue;
+            }
             specialMoves.push(moves[i].name);
         }
     }
     return specialMoves;
 }
 
-async function getSpecialSTABMoves(pokemon) {
+async function getSpecialSTABMoves(pokemon, allowRisky=false) {
     var specialSTABMoves = [];
-    var specialMoves = await getSpecialMoves(pokemon);
+    var specialMoves = await getSpecialMoves(pokemon, allowRisky);
     var data = genData.species.get(pokemon);
     var types = data.types;
     for (var i = 0; i < specialMoves.length; i++) {
@@ -355,8 +399,8 @@ async function getSpecialSTABMoves(pokemon) {
     return specialSTABMoves;
 }
 
-async function getBestSpecialSTABMove(pokemon) {
-    var specialSTABMoves = await getSpecialSTABMoves(pokemon);
+async function getBestSpecialSTABMove(pokemon, allowRisky=false) {
+    var specialSTABMoves = await getSpecialSTABMoves(pokemon, allowRisky);
     var oldBest = specialSTABMoves[0];
     for (var i = 0; i < specialSTABMoves.length; i++) {
         var move = genData.moves.get(specialSTABMoves[i]);
@@ -368,8 +412,8 @@ async function getBestSpecialSTABMove(pokemon) {
     return oldBest;
 }
 
-async function getBestSpecialMove(pokemon, type) {
-    var specialMoves = await getSpecialMoves(pokemon);
+async function getBestSpecialMove(pokemon, type, allowRisky=false) {
+    var specialMoves = await getSpecialMoves(pokemon, allowRisky);
     var oldBest = specialMoves[0];
     for (var i = 0; i < specialMoves.length; i++) {
         var move = genData.moves.get(specialMoves[i]);
@@ -386,8 +430,8 @@ async function getBestSpecialMove(pokemon, type) {
     return oldBest;
 }
 
-async function getBestUniqueSpecialMove(pokemon, type, moves) {
-    var specialMoves = await getSpecialMoves(pokemon);
+async function getBestUniqueSpecialMove(pokemon, type, moves, allowRisky=false) {
+    var specialMoves = await getSpecialMoves(pokemon, allowRisky);
     var oldBest = specialMoves[0];
     for (var i = 0; i < specialMoves.length; i++) {
         var move = genData.moves.get(specialMoves[i]);
@@ -404,9 +448,9 @@ async function getBestUniqueSpecialMove(pokemon, type, moves) {
     return oldBest;
 }
 
-async function getBestSTABMove(pokemon) {
-    var physicalSTABMove = await getBestPhysicalSTABMove(pokemon);
-    var specialSTABMove = await getBestSpecialSTABMove(pokemon);
+async function getBestSTABMove(pokemon, allowRisky=false) {
+    var physicalSTABMove = await getBestPhysicalSTABMove(pokemon, allowRisky);
+    var specialSTABMove = await getBestSpecialSTABMove(pokemon, allowRisky);
     if (physicalSTABMove === undefined) {
         return specialSTABMove;
     }
@@ -426,9 +470,9 @@ async function getBestSTABMove(pokemon) {
     }
 }
 
-async function getBestMove(pokemon, type) {
-    var physicalMove = await getBestPhysicalMove(pokemon, type);
-    var specialMove = await getBestSpecialMove(pokemon, type);
+async function getBestMove(pokemon, type, allowRisky=false) {
+    var physicalMove = await getBestPhysicalMove(pokemon, type, allowRisky);
+    var specialMove = await getBestSpecialMove(pokemon, type, allowRisky);
     var pokemon = genData.species.get(pokemon);
     console.log(physicalMove);
     console.log(specialMove);
@@ -450,9 +494,9 @@ async function getBestMove(pokemon, type) {
     }
 }
 
-async function getBestUniqueMove(pokemon, type, moves) {
-    var physicalMove = await getBestUniquePhysicalMove(pokemon, type, moves);
-    var specialMove = await getBestUniqueSpecialMove(pokemon, type, moves);
+async function getBestUniqueMove(pokemon, type, moves, allowRisky=false) {
+    var physicalMove = await getBestUniquePhysicalMove(pokemon, type, moves, allowRisky);
+    var specialMove = await getBestUniqueSpecialMove(pokemon, type, moves, allowRisky);
     var pokemon = genData.species.get(pokemon);
     console.log(physicalMove);
     console.log(specialMove);
