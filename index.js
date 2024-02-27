@@ -16,7 +16,7 @@ function shallowEqual(object1, object2) {
   for (let key = 0; key < length; key++) {
     if (
         typeof object1[key] === 'object' &&
-        object1[key] !== null
+        object1[key] !== null && object2[key]
     ) {
         if (!shallowEqual(object1[key], object2[key])) {
             return false;
