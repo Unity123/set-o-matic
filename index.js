@@ -139,6 +139,24 @@ const riskyMoves = {
     }
 };
 
+function isRisky(move) {
+    if (move.flags.charge || move.flags.recharge) {
+        return true;
+    }
+    if (move.mindBlownRecoil) {
+        return true;
+    }
+    if (move.self.boosts) {
+        if (move.self.boosts.atk && move.self.boosts.atk <= -2) {
+            return true;
+        }
+        if (move.self.boosts.spa && move.self.boosts.spa <= -2) {
+            return true;
+        }
+    }
+    return false;
+}
+
 var genData = undefined;
 var genNumber = 1;
 
@@ -313,7 +331,7 @@ async function getPhysicalMoves(pokemon, allowRisky=false) {
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].category === "Physical" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
-            if (!allowRisky && shallowEqual(moves[i], riskyMoves)) {
+            if (!allowRisky && isRisky(moves[i])) {
                 continue;
             }
             physicalMoves.push(moves[i].name);
@@ -383,7 +401,7 @@ async function getSpecialMoves(pokemon, allowRisky=false) {
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].category === "Special" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
-            if (!allowRisky && shallowEqual(moves[i], riskyMoves)) {
+            if (!allowRisky && isRisky(moves[i]) {
                 continue;
             }
             specialMoves.push(moves[i].name);
