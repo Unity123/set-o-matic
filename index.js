@@ -140,13 +140,13 @@ const riskyMoves = {
 };
 
 function isRisky(move) {
-    if (move.flags.charge || move.flags.recharge) {
+    if (move.flags.charge || (move.flags.recharge && genNumber > 1)) { // gen 1 recharge moves are not risky because you don't recharge after a ko
         return true;
     }
     if (move.mindBlownRecoil) {
         return true;
     }
-    if (move.self.boosts) {
+    if (move.self && move.self.boosts) {
         if (move.self.boosts.atk && move.self.boosts.atk <= -2) {
             return true;
         }
