@@ -401,7 +401,7 @@ async function getSpecialMoves(pokemon, allowRisky=false) {
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].category === "Special" && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
-            if (!allowRisky && isRisky(moves[i]) {
+            if (!allowRisky && isRisky(moves[i])) {
                 continue;
             }
             specialMoves.push(moves[i].name);
