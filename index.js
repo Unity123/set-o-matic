@@ -154,6 +154,12 @@ function isRisky(move) {
             return true;
         }
     }
+    if (move.selfdestruct) {
+        return true;
+    }
+    if (move.name === "Last Resort" || move.name === "Synchronoise") { // silly weird exceptions
+        return true;
+    }
     return false;
 }
 
@@ -268,11 +274,11 @@ async function getBoostingMoves(pokemon) {
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].boosts) {
-            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || moves[i].boosts.def || moves[i].boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || moves[i].boosts.def || moves[i].boosts.spa || moves[i].boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
                 boostingMoves.push(moves[i].name);
             }
         }
-        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || moves[i].secondary.self.boosts.def || moves[i].secondary.self.boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || moves[i].secondary.self.boosts.def || moves[i].secondary.self.boosts.spa || moves[i].secondary.self.boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
             for (var j = 0; j < Object.values(moves[i].secondary.self.boosts).length; j++) {
                 if (Object.values(moves[i].secondary.self.boosts)[j] >= 1) {
                     boostingMoves.push(moves[i].name);
@@ -310,11 +316,11 @@ async function getSpecialBoostingMoves(pokemon) {
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].boosts) {
-            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.spa || moves[i].boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
                 boostingMoves.push(moves[i].name);
             }
         }
-        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.spa) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.spa || moves[i].secondary.self.boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
             for (var j = 0; j < Object.values(moves[i].secondary.self.boosts).length; j++) {
                 if (Object.values(moves[i].secondary.self.boosts)[j] >= 1) {
                     boostingMoves.push(moves[i].name);
