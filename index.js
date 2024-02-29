@@ -884,7 +884,7 @@ async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
         console.log(newMoves.length);
         if (possibilities.length === 0) {
             var statusMove = await getStatusMoves(pokemon);
-            newMoves.push(statusMoves[0]); // todo: make an actual function that gets the best status move instead of doing this
+            newMoves.push(statusMove[0]); // todo: make an actual function that gets the best status move instead of doing this
         }
     }
     console.log(newMoves);
