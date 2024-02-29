@@ -157,7 +157,7 @@ function isRisky(move) {
     if (move.selfdestruct) {
         return true;
     }
-    if (move.name === "Last Resort" || move.name === "Synchronoise") { // silly weird exceptions
+    if (move.name === "Last Resort" || move.name === "Synchronoise" || move.name === "Dream Eater") { // silly weird exceptions
         return true;
     }
     return false;
@@ -375,7 +375,7 @@ async function getBestPhysicalSTABMove(pokemon, allowRisky=false) {
     for (var i = 0; i < physicalSTABMoves.length; i++) {
         var move = genData.moves.get(physicalSTABMoves[i]);
         if ((move.basePower > genData.moves.get(oldBest).basePower && !(genNumber == 1 && move.critRatio < genData.moves.get(oldBest).critRatio)) || (genNumber == 1 && move.critRatio > genData.moves.get(oldBest).critRatio)) { // hardcoding for gen 1 crits
-            if (move.name === "Foul Play") { // specifically foul play is a move I don't want as a best stab move because it's not good on attackers
+            if (move.name === "Foul Play" || move.name === "Focus Punch") { // specifically foul play is a move I don't want as a best stab move because it's not good on attackers, focus punch is bad as a primary stab move
                 continue;
             }
             oldBest = physicalSTABMoves[i];
