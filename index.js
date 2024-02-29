@@ -498,7 +498,7 @@ async function getBestUniqueSpecialMove(pokemon, type, moves, allowRisky=false) 
             oldBest = specialMoves[i];
         }
     }
-    if (oldBest === undefined || genData.moves.get(oldBest).type !== type) {
+    if (oldBest === undefined || genData.moves.get(oldBest).type !== type || (oldBest.includes("Hidden Power") && hasHiddenPower(moves))) {
         return undefined;
     }
     return oldBest;
