@@ -835,6 +835,9 @@ function mode(arr){
 }
 
 async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
+    if (moves.length >= maxMoves) {
+        return moves;
+    }
     var possibilities = [];
     var types = Array.from(genData.types);
     var existingTypes = [];
@@ -871,7 +874,12 @@ async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
     }
     possibilities.push("Normal");
     var newMoves = [...moves];
-    while (newMoves.length < maxMoves) {
+    var len = newMoves.length + 1;
+    while (newMoves.length < len) {
+        if (possibilities.length === 0) {
+            var statusMove = await getStatusMoves(pokemon);
+            newMoves.push(statusMove[0]); // todo: make an actual function that gets the best status move instead of doing this
+        }
         var mod = mode(possibilities);
         console.log(mod);
         var newMove = await getBestUniqueMove(pokemon, mod, newMoves);
@@ -882,13 +890,9 @@ async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
             possibilities.splice(possibilities.indexOf(mod), 1);
         }
         console.log(newMoves.length);
-        if (possibilities.length === 0) {
-            var statusMove = await getStatusMoves(pokemon);
-            newMoves.push(statusMove[0]); // todo: make an actual function that gets the best status move instead of doing this
-        }
     }
     console.log(newMoves);
-    return newMoves;
+    return generateCoverage(pokemon, newMoves, threats, maxMoves);
 }
 
 async function calculateArchetypes(pokemon, threats) {
