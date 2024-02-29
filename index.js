@@ -844,8 +844,19 @@ async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
         var type = mon.types;
         for (var k = 0; k < types.length; k++) {
             if (genData.types.totalEffectiveness(types[k].name, type) > 1 && !existingTypes.includes(types[k].name)) {
-                possibilities.push(types[k].name);
+                var score = 1;
                 if (genData.types.totalEffectiveness(types[k].name, type) > 2) {
+                    score++;
+                }
+                for (var j = 0; j < existingTypes.length; j++) {
+                    if (genData.types.totalEffectiveness(existingTypes[j], type) < 1) {
+                        score++;
+                    }
+                    if (genData.types.totalEffectiveness(existingTypes[j], type) > 1) {
+                        score--;
+                    }
+                }
+                for (var j = 0; j < score; j++) {
                     possibilities.push(types[k].name);
                 }
             }
@@ -857,7 +868,7 @@ async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
         var mod = mode(possibilities);
         console.log(mod);
         var newMove = await getBestUniqueMove(pokemon, mod, newMoves);
-        if (newMove && genData.moves.get(newMove).basePower >= 60) {
+        if (newMove && (genData.moves.get(newMove).basePower >= 60 || genNumber === 1)) {
             newMoves.push(newMove);
         }
         while (possibilities.includes(mod)) {
