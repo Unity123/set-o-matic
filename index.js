@@ -1,5 +1,5 @@
 import {Smogon} from "https://unpkg.com/@pkmn/smogon/build/index.mjs";
-import {Moves} from "https://unpkg.com/@pkmn/sim/build/esm/data/index.mjs";
+// import {Moves} from "https://unpkg.com/@pkmn/sim/build/esm/data/index.mjs";
 
 $.uniqArray = function(a) {
     return $.grep(a, function(item, pos) {
@@ -163,6 +163,15 @@ function isRisky(move) {
     return false;
 }
 
+function hasHiddenPower(moves) {
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].includes("Hidden Power")) {
+            return true;
+        }
+    }
+    return false;
+}
+
 var genData = undefined;
 var genNumber = 1;
 
@@ -274,11 +283,11 @@ async function getBoostingMoves(pokemon) {
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].boosts) {
-            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || moves[i].boosts.def || moves[i].boosts.spa || moves[i].boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || (moves[i].boosts.def && await genData.learnsets.canLearn(pokemon, "Body Press")) || moves[i].boosts.spa || moves[i].boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
                 boostingMoves.push(moves[i].name);
             }
         }
-        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || moves[i].secondary.self.boosts.def || moves[i].secondary.self.boosts.spa || moves[i].secondary.self.boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || (moves[i].secondary.self.boosts.def && await genData.learnsets.canLearn(pokemon, "Body Press")) || moves[i].secondary.self.boosts.spa || moves[i].secondary.self.boosts.spc) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
             for (var j = 0; j < Object.values(moves[i].secondary.self.boosts).length; j++) {
                 if (Object.values(moves[i].secondary.self.boosts)[j] >= 1) {
                     boostingMoves.push(moves[i].name);
@@ -295,11 +304,11 @@ async function getPhysicalBoostingMoves(pokemon) {
     var moves = Array.from(genData.moves);
     for (var i = 0; i < moves.length; i++) {
         if (moves[i].boosts) {
-            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || moves[i].boosts.def) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+            if ((Object.values(moves[i].boosts).length > 1 || Object.values(moves[i].boosts)[0] >= 2) && moves[i].target === "self" && (moves[i].boosts.atk || (moves[i].boosts.def && await genData.learnsets.canLearn(pokemon, "Body Press"))) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
                 boostingMoves.push(moves[i].name);
             }
         }
-        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || moves[i].secondary.self.boosts.def) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
+        if (moves[i].secondary && moves[i].secondary.chance >= 50 && moves[i].secondary.self && moves[i].secondary.self.boosts && (moves[i].secondary.self.boosts.atk || (moves[i].secondary.self.boosts.def && await genData.learnsets.canLearn(pokemon, "Body Press"))) && await genData.learnsets.canLearn(pokemon, moves[i].name)) {
             for (var j = 0; j < Object.values(moves[i].secondary.self.boosts).length; j++) {
                 if (Object.values(moves[i].secondary.self.boosts)[j] >= 1) {
                     boostingMoves.push(moves[i].name);
@@ -366,6 +375,9 @@ async function getBestPhysicalSTABMove(pokemon, allowRisky=false) {
     for (var i = 0; i < physicalSTABMoves.length; i++) {
         var move = genData.moves.get(physicalSTABMoves[i]);
         if ((move.basePower > genData.moves.get(oldBest).basePower && !(genNumber == 1 && move.critRatio < genData.moves.get(oldBest).critRatio)) || (genNumber == 1 && move.critRatio > genData.moves.get(oldBest).critRatio)) { // hardcoding for gen 1 crits
+            if (move.name === "Foul Play") { // specifically foul play is a move I don't want as a best stab move because it's not good on attackers
+                continue;
+            }
             oldBest = physicalSTABMoves[i];
         }
     }
@@ -393,6 +405,9 @@ async function getBestUniquePhysicalMove(pokemon, type, moves, allowRisky=false)
     for (var i = 0; i < physicalMoves.length; i++) {
         var move = genData.moves.get(physicalMoves[i]);
         if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower && !moves.includes(physicalMoves[i])) {
+            if (physicalMoves[i].includes("Hidden Power") && hasHiddenPower(moves)) {
+                continue;
+            }
             oldBest = physicalMoves[i];
         }
     }
@@ -470,6 +485,9 @@ async function getBestUniqueSpecialMove(pokemon, type, moves, allowRisky=false) 
         //console.log(move.basePower);
         //console.log(oldBest);
         if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower && !moves.includes(specialMoves[i])) {
+            if (specialMoves[i].includes("Hidden Power") && hasHiddenPower(moves)) {
+                continue;
+            }
             oldBest = specialMoves[i];
         }
     }
@@ -660,7 +678,7 @@ async function createMovesets(pokemon, threats, archetype) {
     for (var i = 0; i < archetype.length; i++) {
         var set = {};
         var variations = [];
-        set.name = archetype[i];
+        //set.name = archetype[i];
         set.species = pokemon;
         set.moves = [];
         if (archetype[i] === "stall") {
@@ -748,6 +766,34 @@ async function createMovesets(pokemon, threats, archetype) {
                 variations.push(newSet);
             }
         }
+        if (archetype[i] === "immediate-power") {
+            var bestSTABMove = await getBestSTABMove(pokemon, false);
+            var bestRiskyMove = await getBestSTABMove(pokemon, true);
+            if (bestSTABMove) {
+                set.moves.push(bestSTABMove);
+            }
+            var newSet = undefined;
+            if (bestRiskyMove && !set.moves.includes(bestRiskyMove)) {
+                newSet = {...set};
+                newSet.moves = [...set.moves];
+                newSet.moves.push(bestRiskyMove);
+            }
+            if (data.baseStats.spe < getAvgSpeed(threats)) {
+                var priority = await getBestPriorityMove(pokemon);
+                if (priority) {
+                    set.moves.push(priority);
+                    if (newSet) {
+                        newSet.moves.push(priority);
+                    }
+                }
+            }
+            set.moves = await generateCoverage(pokemon, set.moves, threats, 4);
+            if (newSet) {
+                newSet.moves = await generateCoverage(pokemon, newSet.moves, threats, 4);
+                variations.push(set);
+                variations.push(newSet);
+            }
+        }
         if (variations.length > 0) {
             for (var j = 0; j < variations.length; j++) {
                 movesets.push(variations[j]);
@@ -811,7 +857,7 @@ async function generateCoverage(pokemon, moves, threats, maxMoves=4) {
         var mod = mode(possibilities);
         console.log(mod);
         var newMove = await getBestUniqueMove(pokemon, mod, newMoves);
-        if (newMove) {
+        if (newMove && genData.moves.get(newMove).basePower >= 60) {
             newMoves.push(newMove);
         }
         while (possibilities.includes(mod)) {
@@ -879,12 +925,15 @@ async function calculateArchetypes(pokemon, threats) {
         archetypes.push("suicide-lead");
     }
     if (isBulky && !isStrong) {
-        if (getRecoveryMoves(pokemon).length > 0) {
+        var recovery = await getRecoveryMoves(pokemon);
+        if (recovery.length > 0) {
             archetypes.push("stall");
         }
     }
     if ((isStrong && isBulky) || (isStrong && isFast)) {
-        if (getBoostingMoves(pokemon).length > 0) {
+        console.log("testing for boosting moves");
+        var boostingMoves = await getBoostingMoves(pokemon);
+        if (boostingMoves.length > 0) {
             archetypes.push("offensive-setup");
         }
     }
