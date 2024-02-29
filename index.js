@@ -408,6 +408,8 @@ async function getBestUniquePhysicalMove(pokemon, type, moves, allowRisky=false)
     for (var i = 0; i < physicalMoves.length; i++) {
         var move = genData.moves.get(physicalMoves[i]);
         if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower && !moves.includes(physicalMoves[i])) {
+            console.log(physicalMoves[i]);
+            console.log(hasHiddenPower(moves));
             if (physicalMoves[i].includes("Hidden Power") && hasHiddenPower(moves)) {
                 continue;
             }
@@ -488,6 +490,8 @@ async function getBestUniqueSpecialMove(pokemon, type, moves, allowRisky=false) 
         //console.log(move.basePower);
         //console.log(oldBest);
         if (move.type === type && move.basePower > genData.moves.get(oldBest).basePower && !moves.includes(specialMoves[i])) {
+            console.log(specialMoves[i]);
+            console.log(hasHiddenPower(moves));
             if (specialMoves[i].includes("Hidden Power") && hasHiddenPower(moves)) {
                 continue;
             }
