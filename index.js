@@ -160,6 +160,9 @@ function isRisky(move) {
     if (move.name === "Last Resort" || move.name === "Synchronoise" || move.name === "Dream Eater") { // silly weird exceptions
         return true;
     }
+    if (move.accuracy < 80 && move.accuracy !== true) {
+        return true;
+    }
     return false;
 }
 
