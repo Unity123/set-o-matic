@@ -94,6 +94,11 @@ const goodDefensiveAbilities = [
     "Psychic Surge"
 ]
 
+const risky = {
+    flags: { charge: 1, recharge: 1 },
+    mindBlownRecoil: true
+}
+
 var genData = undefined;
 var genNumber = 1;
 
